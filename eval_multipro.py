@@ -13,7 +13,7 @@ from scipy.io import loadmat
 from mit_semseg.config import cfg
 from mit_semseg.dataset import ValDataset
 from mit_semseg.models import ModelBuilder, SegmentationModule
-from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger
+from mit_semseg.utils import AverageMeter, colorEncode, accuracy, intersectionAndUnion, parse_devices, setup_logger, take_softmax
 from mit_semseg.lib.nn import user_scattered_collate, async_copy_to
 from mit_semseg.lib.utils import as_numpy
 from PIL import Image
@@ -61,7 +61,10 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
                 feed_dict = async_copy_to(feed_dict, gpu_id)
 
                 # forward pass
-                scores_tmp = segmentation_module(feed_dict, segSize=segSize)
+                logits = segmentation_module(feed_dict, segSize=segSize)
+
+                scores_tmp = take_softmax(logits, segSize)
+
                 scores = scores + scores_tmp / len(cfg.DATASET.imgSizes)
 
             _, pred = torch.max(scores, dim=1)
@@ -74,11 +77,15 @@ def evaluate(segmentation_module, loader, cfg, gpu_id, result_queue):
 
         # visualization
         if cfg.VAL.visualize:
-            visualize_result(
-                (batch_data['img_ori'], seg_label, batch_data['info']),
-                pred,
-                os.path.join(cfg.DIR, 'result')
-            )
+            print(batch_data)
+            #print(batch_data['img_ori'])
+
+            #print(batch_data['img_ori'], seg_label, batch_data['info'])
+            #visualize_result(
+            #    (batch_data['img_ori'], seg_label, batch_data['info']),
+            #    pred,
+            #    os.path.join(cfg.DIR, 'result')
+            #)
 
 
 def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
@@ -87,7 +94,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
     # Dataset and Loader
     dataset_val = ValDataset(
         cfg.DATASET.root_dataset,
-        cfg.DATASET.list_val,
+        cfg.DATASET.list_test,
         cfg.DATASET,
         start_idx=start_idx, end_idx=end_idx)
     loader_val = torch.utils.data.DataLoader(
@@ -96,7 +103,7 @@ def worker(cfg, gpu_id, start_idx, end_idx, result_queue):
         shuffle=False,
         collate_fn=user_scattered_collate,
         num_workers=2)
-
+    
     # Network Builders
     net_encoder = ModelBuilder.build_encoder(
         arch=cfg.MODEL.arch_encoder.lower(),
