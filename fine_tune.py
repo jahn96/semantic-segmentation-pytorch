@@ -315,11 +315,11 @@ def main(cfg, gpus):
     history = {'train': {'epoch': [], 'loss': [], 'acc': []}, 'validation': {'loss': [], 'acc': []}}
 
     for epoch in range(cfg.TRAIN.start_epoch, cfg.TRAIN.num_epoch):
-        #train(segmentation_module, iterator_train, optimizers, history, epoch+1, cfg)
+        train(segmentation_module, iterator_train, optimizers, history, epoch+1, cfg)
         evaluate(segmentation_module, cfg, gpus[0], history)
 
         # checkpointing
-        #checkpoint(nets, history, cfg, epoch+1)
+        checkpoint(nets, history, cfg, epoch+1)
 
     print('Training Done!')
 

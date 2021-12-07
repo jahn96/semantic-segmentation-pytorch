@@ -5,6 +5,17 @@ import re
 import functools
 import fnmatch
 import numpy as np
+import torch.nn as nn
+
+
+def take_softmax(x, segSize=None):
+    if not segSize:
+        x = nn.functional.log_softmax(x, dim=1)
+    else:
+        x = nn.functional.interpolate(
+                x, size=segSize, mode='bilinear', align_corners=False)
+        x = nn.functional.softmax(x, dim=1)
+    return x
 
 
 def setup_logger(distributed_rank=0, filename="log.txt"):

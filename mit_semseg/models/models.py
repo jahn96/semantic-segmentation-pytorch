@@ -28,23 +28,28 @@ class SegmentationModule(SegmentationModuleBase):
 
     def forward(self, feed_dict, *, segSize=None):
         # training
+        # if the dataset is loaded as a list, this will
+	# raise a TypeError while trying to access it as a dictionary.
+        if type(feed_dict) is list:
+            feed_dict = feed_dict[0]
+            # also, convert to torch.cuda.FloatTensor
+            if torch.cuda.is_available():
+                feed_dict['img_data'] = feed_dict['img_data'].cuda()
+                feed_dict['seg_label'] = feed_dict['seg_label'].cuda()
+            else:
+                raise RunTimeError('Cannot convert torch.Floattensor into torch.cuda.FloatTensor')
         if segSize is None:
             if self.deep_sup_scale is not None: # use deep supervision technique
                 (pred, pred_deepsup) = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True))
             else:
-                pred = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True))
+                logits = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True))
 
-            loss = self.crit(pred, feed_dict['seg_label'])
-            if self.deep_sup_scale is not None:
-                loss_deepsup = self.crit(pred_deepsup, feed_dict['seg_label'])
-                loss = loss + loss_deepsup * self.deep_sup_scale
+            return logits
 
-            acc = self.pixel_acc(pred, feed_dict['seg_label'])
-            return loss, acc
         # inference
         else:
-            pred = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True), segSize=segSize)
-            return pred
+            logits = self.decoder(self.encoder(feed_dict['img_data'], return_feature_maps=True), segSize=segSize)
+            return logits 
 
 
 class ModelBuilder:
@@ -375,12 +380,12 @@ class C1(nn.Module):
         x = self.cbr(conv5)
         x = self.conv_last(x)
 
-        if self.use_softmax: # is True during inference
-            x = nn.functional.interpolate(
-                x, size=segSize, mode='bilinear', align_corners=False)
-            x = nn.functional.softmax(x, dim=1)
-        else:
-            x = nn.functional.log_softmax(x, dim=1)
+        #if self.use_softmax: # is True during inference
+        #    x = nn.functional.interpolate(
+        #        x, size=segSize, mode='bilinear', align_corners=False)
+        #    x = nn.functional.softmax(x, dim=1)
+        #else:
+        #    x = nn.functional.log_softmax(x, dim=1)
 
         return x
 

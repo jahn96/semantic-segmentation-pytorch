@@ -17,8 +17,8 @@ def write_data_odgt(image_path, segm_path, file_path, DATA_SIZE=10):
   with open(file_path, 'w') as fw:
     for subdir, dirs, files in os.walk(image_path):
       for dir in dirs:
-        img_path_list = sorted(list(Path(image_path + '/' + dir).glob('*.png')))[:DATA_SIZE]
-        annot_path_list = sorted(list(Path(segm_path + '/' + dir).glob('*labelIds.png')))[:DATA_SIZE]
+        img_path_list = sorted(list(Path(image_path + '/' + dir).glob('*.png'))) #[:DATA_SIZE]
+        annot_path_list = sorted(list(Path(segm_path + '/' + dir).glob('*labelIds.png'))) #[:DATA_SIZE]
 
         assert len(img_path_list) == len(annot_path_list)
 
@@ -36,8 +36,8 @@ def write_data_odgt(image_path, segm_path, file_path, DATA_SIZE=10):
           fw.write(json.dumps(elm) + '\n')
   print(f'Have succesfully wrote data to {file_path}')
 
-write_data_odgt('./city_scapes/leftImg8bit_trainvaltest/leftImg8bit/train', './city_scapes/gtFine_trainvaltest/gtFine/train', './data/city_training.odgt')
-write_data_odgt('./city_scapes/leftImg8bit_trainvaltest/leftImg8bit/val', './city_scapes/gtFine_trainvaltest/gtFine/val', './data/city_validation.odgt')
-write_data_odgt('./city_scapes/leftImg8bit_trainvaltest/leftImg8bit/test', './city_scapes/gtFine_trainvaltest/gtFine/test', './data/city_testing.odgt')
+write_data_odgt('./data/city_scapes/leftImg8bit_trainvaltest/leftImg8bit/train', './data/city_scapes/gtFine_trainvaltest/gtFine/train', './data/city_training.odgt', DATA_SIZE=30)
+write_data_odgt('./data/city_scapes/leftImg8bit_trainvaltest/leftImg8bit/val', './data/city_scapes/gtFine_trainvaltest/gtFine/val', './data/city_validation.odgt', DATA_SIZE=30)
+write_data_odgt('./data/city_scapes/leftImg8bit_trainvaltest/leftImg8bit/test', './data/city_scapes/gtFine_trainvaltest/gtFine/test', './data/city_testing.odgt', DATA_SIZE=30)
 
 
