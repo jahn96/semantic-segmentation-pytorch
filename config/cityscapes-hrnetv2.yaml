@@ -1,7 +1,8 @@
 DATASET:
   root_dataset: "./data"
-  list_train: "./data/training.odgt"
-  list_val: "./data/validation.odgt"
+  list_train: "./data/city_training.odgt"
+  list_val: "./data/city_validation.odgt"
+  list_test: "./data/city_testing.odgt"
   num_class: 35
   imgSizes: (1024, 2048)
   imgMaxSize: 3000
@@ -18,7 +19,7 @@ TRAIN:
   batch_size_per_gpu: 2
   num_epoch: 200
   start_epoch: 96
-  epoch_iters: 500
+  epoch_iters: 5000
   optim: "SGD"
   lr_encoder: 0.02
   lr_decoder: 0.02
@@ -33,11 +34,11 @@ TRAIN:
 
 VAL:
   visualize: False
-  checkpoint: "epoch_30.pth"
+  checkpoint: "epoch_73.pth"
 
 TEST:
-  checkpoint: "epoch_30.pth"
+  checkpoint: "epoch_73.pth"
   result: "./"
 
-DIR: "model_chkpts/cityscapes-hrnetv2-c1"
+DIR: "ckpt/cityscapes-hrnetv2-c1"
 
